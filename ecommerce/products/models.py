@@ -18,21 +18,6 @@ class Product(models.Model):
         return self.title
     
 
-class CartItem(models.Model):
-    cart = models.ForeignKey('Cart', on_delete=models.CASCADE, name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    completed = models.BooleanField(default=False)
-    quantity = models.PositiveIntegerField(default=1)
-    
-    def __str__(self):
-        return f'{self.cart}: {self.product} x {self.quantity}'
-    
-    def get_total_price(self) -> float:
-        return self.quantity * self.product.price
-    
-    
-
-
 class Cart(models.Model):
     uuid = models.UUIDField(default=uuid4, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='carts')
@@ -47,7 +32,21 @@ class Cart(models.Model):
     
     def get_total_price(self) -> float:
         return sum(item.get_total_price() for item in self.items.all())
-    
-    
-    
 
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    completed = models.BooleanField(default=False)
+    quantity = models.PositiveIntegerField(default=1)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('cart', 'product')
+        ordering = ('updated_at',)
+    
+    def __str__(self):
+        return f'{self.cart}: {self.product} x {self.quantity}'
+    
+    def get_total_price(self) -> float:
+        return self.quantity * self.product.price
