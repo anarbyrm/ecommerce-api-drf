@@ -10,5 +10,6 @@ urlpatterns = [
     
     # project urls
     path('accounts/', include('accounts.api.urls')),
+    path('products/', include('products.api.urls')),
     
 ]
