@@ -25,7 +25,7 @@ class Cart(models.Model):
     order_date = models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
-        return f'{self.user} cart'
+        return f'cart: {self.user}'
     
     def get_item_count(self) -> int:
         return sum(item.quantity for item in self.items.all())

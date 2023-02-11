@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, status, permissions, mixins
+from rest_framework import generics, status, permissions, mixins, views
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from products.api.serializers import (
     ProductListSerializer,
@@ -27,20 +28,18 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = 'slug'
     
     
-class CartView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get(self, request):
-        cart, created = Cart.objects.get_or_create(user=self.request.user, completed=False)
+class CartView(views.APIView):
+    def get(self, request, *arg, **kwargs):
+        cart, created = Cart.objects.get_or_create(user=self.request.user, completed=False)    
+        print(cart, Cart.objects.count())    
         serializer = CartSerializer(cart)
-        serializer.is_valid(raise_exception=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+        
 
-class AddToCartView(generics.GenericAPIView):
+class AddToCartView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
     
-    def post(self, request, slug):
+    def post(self, request, slug, *arg, **kwargs):
         product = get_object_or_404(Product, slug=slug)
         cart = Cart.objects.get_or_create(user=self.request.user, completed=False)
         item, created = CartItem.objects.get_or_create(
@@ -58,10 +57,10 @@ class AddToCartView(generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     
-class ClearCartView(generics.GenericAPIView):
+class ClearCartView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
     
-    def delete(self, request):
+    def delete(self, request, *arg, **kwargs):
         cart, created = Cart.objects.get_or_create(user=self.request.user, completed=False)
         items = CartItem.object.filter(cart=cart)
         
@@ -72,10 +71,10 @@ class ClearCartView(generics.GenericAPIView):
         return Response({'message': 'All items inside the cart has been removed!'}, status=status.HTTP_204_NO_CONTENT)
     
 
-class RemoveSpecificItemView(generics.GenericAPIView):
+class RemoveSpecificItemView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
     
-    def delete(self, request):
+    def delete(self, request, *arg, **kwargs):
         cart, created = Cart.objects.get_or_create(user=self.request.user, completed=False)
         item =  CartItem.objects.filter(cart=cart)
         
@@ -90,13 +89,13 @@ class RemoveSpecificItemView(generics.GenericAPIView):
 class DecreaseItemQuantityView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
-    def put(self, request):
+    def put(self, request, slug, *arg, **kwargs):
         cart, created = Cart.objects.get_or_create(user=self.request.user, completed=False)
-        item =  CartItem.objects.filter(cart=cart)
+        product = get_object_or_404(Product, slug=slug)
+        item =  CartItem.objects.filter(cart=cart, product=product)
         
         if item.exists():
             item = item.first()
-            
             item.quantity -= 1
             item.save()
             
