@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from products.models import Product, Cart, CartItem
+from products.models import Product, Cart, CartItem, ShippingAddress
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -70,4 +70,14 @@ class CartSerializer(serializers.ModelSerializer):
     def get_item_count(self, obj: Cart):
         return obj.get_item_count()
     
-    
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShippingAddress
+        fields = (
+            'user',
+            'country',
+            'city',
+            'full_address'
+        )
+        

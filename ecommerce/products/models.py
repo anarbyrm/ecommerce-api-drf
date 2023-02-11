@@ -50,3 +50,15 @@ class CartItem(models.Model):
     
     def get_total_price(self) -> float:
         return self.quantity * self.product.price
+    
+
+class ShippingAddress(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='address')
+    country = models.CharField(max_length=100)
+    city = models.CharField(max_length=100)
+    full_address = models.CharField(max_length=255)
+    zip_code = models.CharField(max_length=10)
+
+    def __str__(self):
+        return f"{self.user}: {self.full_address}"
+    

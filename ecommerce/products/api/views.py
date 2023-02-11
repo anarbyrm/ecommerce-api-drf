@@ -1,17 +1,18 @@
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, status, permissions
+from rest_framework import generics, status, permissions, mixins
 from rest_framework.response import Response
 from products.api.serializers import (
     ProductListSerializer,
     ProductDetailSerializer,
     CartSerializer,
-    CartItemSerializer
+    CartItemSerializer,
+    AddressSerializer
     )
 from products.models import (
     Product,
     Cart,
-    CartItem
+    CartItem,
+    ShippingAddress
     )
 
 
@@ -27,7 +28,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     
     
 class CartView(generics.GenericAPIView):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request):
         cart, created = Cart.objects.get_or_create(user=self.request.user, completed=False)
@@ -36,8 +37,8 @@ class CartView(generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
-class AddToCart(generics.GenericAPIView):
-    # permission_classes = [permissions.IsAuthenticated]
+class AddToCartView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     
     def post(self, request, slug):
         product = get_object_or_404(Product, slug=slug)
@@ -57,7 +58,9 @@ class AddToCart(generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     
-class ClearCart(generics.GenericAPIView):
+class ClearCartView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
     def delete(self, request):
         cart, created = Cart.objects.get_or_create(user=self.request.user, completed=False)
         items = CartItem.object.filter(cart=cart)
@@ -69,7 +72,9 @@ class ClearCart(generics.GenericAPIView):
         return Response({'message': 'All items inside the cart has been removed!'}, status=status.HTTP_204_NO_CONTENT)
     
 
-class RemoveSpecificItem(generics.GenericAPIView):
+class RemoveSpecificItemView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
     def delete(self, request):
         cart, created = Cart.objects.get_or_create(user=self.request.user, completed=False)
         item =  CartItem.objects.filter(cart=cart)
@@ -82,7 +87,9 @@ class RemoveSpecificItem(generics.GenericAPIView):
         return Response({'message': f'{item_name} removed completely form the cart!'}, status=status.HTTP_204_NO_CONTENT)
     
 
-class DecreaseItemQuantity(generics.GenericAPIView):
+class DecreaseItemQuantityView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
     def put(self, request):
         cart, created = Cart.objects.get_or_create(user=self.request.user, completed=False)
         item =  CartItem.objects.filter(cart=cart)
@@ -97,8 +104,15 @@ class DecreaseItemQuantity(generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
             
-    
-    
+class ShippingAddressView(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    generics.GenericAPIView):
+    serializer_class = AddressSerializer
+    queryset = ShippingAddress.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+        
     
     
     
