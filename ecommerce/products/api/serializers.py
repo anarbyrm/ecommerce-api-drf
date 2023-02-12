@@ -75,7 +75,6 @@ class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShippingAddress
         fields = (
-            'user',
             'country',
             'city',
             'full_address'

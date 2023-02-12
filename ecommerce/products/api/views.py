@@ -103,15 +103,36 @@ class DecreaseItemQuantityView(generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
             
-class ShippingAddressView(
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    generics.GenericAPIView):
-    serializer_class = AddressSerializer
-    queryset = ShippingAddress.objects.all()
+class ShippingAddressView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
         
+    def get_object(self):
+        address = ShippingAddress.objects.filter(user=self.request.user)
+        if address.exists():
+            obj = address.first()
+            return obj
+        return None
+    
+    def get(self, request, *args, **kwargs):
+        obj = self.get_object()
+        if obj is None:
+            return Response({'message': 'shipping address for the user is not defined.'})
+        serializer = AddressSerializer(obj)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request, *args, **kwargs):
+        if self.get_object() is None:
+            serializer = AddressSerializer(data=self.request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(user=self.request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            instance = self.get_object()
+            serializer = AddressSerializer(instance, data=self.request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+    
     
     
     
