@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, permissions, mixins, views
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from products.api.serializers import (
     ProductListSerializer,
     ProductDetailSerializer,
@@ -37,6 +38,7 @@ class CartView(views.APIView):
         
 
 class AddToCartView(views.APIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     
     def post(self, request, slug, *arg, **kwargs):
@@ -58,6 +60,7 @@ class AddToCartView(views.APIView):
     
     
 class ClearCartView(views.APIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     
     def delete(self, request, *arg, **kwargs):
@@ -72,6 +75,7 @@ class ClearCartView(views.APIView):
     
 
 class RemoveSpecificItemView(views.APIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     
     def delete(self, request, *arg, **kwargs):
@@ -87,6 +91,7 @@ class RemoveSpecificItemView(views.APIView):
     
 
 class DecreaseItemQuantityView(generics.GenericAPIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     
     def put(self, request, slug, *arg, **kwargs):
@@ -104,6 +109,7 @@ class DecreaseItemQuantityView(generics.GenericAPIView):
     
             
 class ShippingAddressView(generics.GenericAPIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
         
     def get_object(self):
